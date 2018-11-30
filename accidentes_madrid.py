@@ -53,14 +53,14 @@ if not df_accidents_by_district[2018].sum() == df_accidents_2018['num_parte'].nu
 
 
 # Renombramiento de valores de la columna 'lesividad' en una nueva columna
-def readable_injury(value):
+def readable_injury(key):
     injury = {
         'IL': 'ILESO',
         'HL': 'HERIDO LEVE',
         'HG': 'HERIDO GRAVE',
         'MT': 'MUERTO'
     }
-    return injury.setdefault(value, 'NO ASIGNADA')
+    return injury.setdefault(key, 'NO ASIGNADA')
 
 
 df_all_accidents['tipo_lesividad'] = df_all_accidents['lesividad'].apply(readable_injury)
