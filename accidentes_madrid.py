@@ -1,4 +1,5 @@
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # Se cargan los datos y se renombran todas las columnas
 new_names = [
@@ -28,22 +29,50 @@ df_all_accidents = pd.concat([df_accidents_2017, df_accidents_2018], sort=False)
 # Victimas por accidente
 s_num_victims_by_accident = df_all_accidents.groupby(['num_parte'])['num_victimas'].sum()
 
+# Accidentes donde no existe ningún factor climático
+df_best_weather = df_all_accidents[
+    (df_all_accidents['sv_seca_limpia'] == 'SI') & (df_all_accidents['fa_seco'] == 'SI')
+]
+
+# Accidentes en días laborables
+weekdays = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES']
+
+df_accidents_on_weekdays = df_all_accidents[df_all_accidents['dia_semana'].isin(weekdays)]
+
 # Accidentes por distrito y por anio
 df_accidents_by_district = pd.pivot_table(
     df_all_accidents, index=['distrito'], columns=[df_all_accidents['fecha'].dt.year],
     aggfunc=pd.Series.nunique, values='num_parte'
 )
 
+# Se verifica que el resultado es correcto
 if not df_accidents_by_district[2017].sum() == df_accidents_2017['num_parte'].nunique():
-    raise Exception()
+    raise Exception("Error para el año 2017")
 if not df_accidents_by_district[2018].sum() == df_accidents_2018['num_parte'].nunique():
-    raise Exception()
+    raise Exception("Error para el año 2018")
 
-df_best_weather = df_all_accidents[
-    (df_all_accidents['sv_seca_limpia'] == 'SI') & (df_all_accidents['fa_seco'] == 'SI')
-]
 
-weekdays = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES']
+# Renombramiento de valores de la columna 'lesividad' en una nueva columna
+def readable_injury(value):
+    injury = {
+        'IL': 'ILESO',
+        'HL': 'HERIDO LEVE',
+        'HG': 'HERIDO GRAVE',
+        'MT': 'MUERTO'
+    }
+    return injury.setdefault(value, 'NO ASIGNADA')
 
-df_accidents_on_weekdays = df_all_accidents[df_all_accidents['dia_semana'].isin(weekdays)]
+
+df_all_accidents['tipo_lesividad'] = df_all_accidents['lesividad'].apply(readable_injury)
+
+# Número de personas por tipo de lesividad calculado por año
+df_injuries_by_year = pd.pivot_table(
+    df_all_accidents, index=['lesividad'], columns=[df_all_accidents['fecha'].dt.year],
+    aggfunc='sum', values='num_victimas'
+)
+
+if not df_accidents_2017['num_victimas'].sum() == df_injuries_by_year[2017].sum():
+    raise Exception("Error para el año 2017")
+if not df_accidents_2018['num_victimas'].sum() == df_injuries_by_year[2018].sum():
+    raise Exception("Error para el año 2018")
 
