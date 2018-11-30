@@ -67,7 +67,7 @@ df_all_accidents['tipo_lesividad'] = df_all_accidents['lesividad'].apply(readabl
 
 # Número de personas por tipo de lesividad calculado por año
 df_injuries_by_year = pd.pivot_table(
-    df_all_accidents, index=['tipo_lesividad'], columns=[df_all_accidents['fecha'].dt.year],
+    df_all_accidents, index=['lesividad'], columns=[df_all_accidents['fecha'].dt.year],
     aggfunc='sum', values='num_victimas'
 )
 
